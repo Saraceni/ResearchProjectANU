@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="br.saraceni.research.MainActivity" >
+
+    <item
+        android:id="@+id/action_capture"
+        android:orderInCategory="100"
+        android:showAsAction="always|withText"
+        android:title="Capture"/>
+
+</menu>
