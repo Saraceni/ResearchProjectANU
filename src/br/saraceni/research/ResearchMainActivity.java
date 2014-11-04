@@ -9,6 +9,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceView;
 import android.view.WindowManager;
+import android.widget.Toast;
+import br.saraceni.research.utils.BitmapFileHandler;
 import br.saraceni.research.utils.MatBitmapHelper;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -24,6 +26,7 @@ public class ResearchMainActivity extends Activity implements CvCameraViewListen
 	
 	public static final String TAG = "ResearchMainActivity";
 	public static final String FRAME_URI_EXTRA = "FRAME_URI_EXTRA";
+	private static final int ACTIVITY_RESULT = 67;
 	
 	private CameraBridgeViewBase mOpenCvCameraView;
 	private Mat mCameraFrame;
@@ -95,6 +98,7 @@ public class ResearchMainActivity extends Activity implements CvCameraViewListen
 	}
 	
 	public void onDestroy() {
+		Log.i(TAG, "onDestroy()");
         super.onDestroy();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
@@ -133,8 +137,24 @@ public class ResearchMainActivity extends Activity implements CvCameraViewListen
 				"Frame", "Camera Frame");
 		Intent intent = new Intent(ResearchMainActivity.this, SelectObjectActivity.class);
 		intent.putExtra(FRAME_URI_EXTRA, sUri);
-		startActivity(intent);
-		this.finish();
+		startActivityForResult(intent, ACTIVITY_RESULT);
+	}
+	
+	/* -------------------------- Result From Started Activity ------------------------- */
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		switch(requestCode)
+		{
+		case ACTIVITY_RESULT:
+			if(resultCode == Activity.RESULT_OK)
+			{
+				Log.i(TAG, "resultCode = RESULT_OK");
+				this.finish();
+			}
+			break;
+		}
 	}
 	
 	/* --------------------- CvCameraViewListener2 Interface Methods ------------------- */

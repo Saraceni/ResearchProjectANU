@@ -63,6 +63,7 @@ containing a value of this type.
         public static final int OpenCvView=0x7f050004;
         public static final int action_capture=0x7f050006;
         public static final int action_finish=0x7f050007;
+        public static final int action_save=0x7f050008;
         public static final int any=0x7f050000;
         public static final int back=0x7f050001;
         public static final int cardboard_view=0x7f050003;

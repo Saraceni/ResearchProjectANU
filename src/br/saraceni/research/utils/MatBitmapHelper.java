@@ -8,6 +8,7 @@ import org.opencv.imgproc.Imgproc;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.net.Uri;
@@ -175,6 +176,32 @@ public class MatBitmapHelper {
 			this.value = value;
 		}
 	};
+	
+	/* -------------------------------- Resize Bitmap -------------------------------- */
+	
+	public static Bitmap resizeBitmap(Bitmap bitmap, int maxSize)
+	{
+		int bigger = bitmap.getWidth() > bitmap.getHeight() ? bitmap.getWidth() : bitmap.getHeight();
+		if(bigger > maxSize)
+		{
+			float scale = bigger/maxSize;
+			return scaleBitmap(bitmap, scale);
+		}
+		else
+		{
+			return bitmap;
+		}
+	}
+	
+	public static Bitmap scaleBitmap(Bitmap bitmap, float scale)
+	{
+		return resizeBitmap(bitmap, (int) (bitmap.getWidth() * scale), (int) (bitmap.getHeight() * scale));
+	}
+	
+	public static Bitmap resizeBitmap(Bitmap original, int width, int height)
+	{
+		return Bitmap.createScaledBitmap(original, width, height, false);
+	}
 
 }
 

@@ -9,9 +9,12 @@ import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
 import br.saraceni.research.R;
+import br.saraceni.research.ResearchMainActivity;
 import br.saraceni.research.SelectObjectActivity;
 import br.saraceni.research.opengl.objects.ImageDisplay;
 import br.saraceni.research.opengl.objects.ParticleShooter;
@@ -25,6 +28,7 @@ import br.saraceni.research.opengl.programs.TextureShaderProgram;
 import br.saraceni.research.opengl.util.Geometry.Point;
 import br.saraceni.research.opengl.util.Geometry.Vector;
 import br.saraceni.research.opengl.util.TextureHelper;
+import br.saraceni.research.utils.BitmapFileHandler;
 import br.saraceni.research.utils.MatBitmapHelper;
 
 import com.google.vrtoolkit.cardboard.CardboardActivity;
@@ -36,6 +40,7 @@ import com.google.vrtoolkit.cardboard.Viewport;
 public class MainCardboardActivity extends CardboardActivity implements CardboardView.StereoRenderer {
 
 	private static final float CAMERA_Z = 0.01f;
+	private static final String TAG = "MainCardboardActivity";
 	
 	private float[] mCamera; // set in onNewFrame
 	private float[] mView; // transform.getEyeView() * mCamera
@@ -43,10 +48,10 @@ public class MainCardboardActivity extends CardboardActivity implements Cardboar
 	private float[] mModelViewProjection; // transform.getPerspective() * mModelView in onDrawEye
 	private float[] mModelView; // mView * mModelImgDisplay
 	private float[] mModelImgDisplay; // translation of ImgDisplay
+	private float[] mEyeTransformPerspective;
 	
-	private Bitmap bitmap;
-	
-    private ImageDisplay imageDisplay;
+	private Bitmap[] bitmaps;
+	private ImageDisplay[] imageDisplays;
     private Skybox skybox;
 	
 	private TextureShaderProgram textureProgram;
@@ -54,7 +59,7 @@ public class MainCardboardActivity extends CardboardActivity implements Cardboar
 	
 	private int particleTexture;
 	private int skyboxTexture;
-	private int texture;
+	private int[] textures;
 	
 	private long globalStartTime;
 	
@@ -68,11 +73,12 @@ public class MainCardboardActivity extends CardboardActivity implements Cardboar
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
-		super.onCreate(savedInstanceState);
 		
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		
+		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.cardboard_activity);
 		CardboardView cardboardView = (CardboardView) findViewById(R.id.cardboard_view);
@@ -86,18 +92,26 @@ public class MainCardboardActivity extends CardboardActivity implements Cardboar
 		mModelView = new float[16];
 		mModelImgDisplay = new float[16];
 		
-		bitmap = retrieveBitmap();
-		bitmap = MatBitmapHelper.convertPowerOfTwo(bitmap);
+		bitmaps = retrieveBitmaps();
+	}
+	
+	@Override
+	public void onDestroy()
+	{
+		BitmapFileHandler.deleteAllFiles(this);
+		super.onDestroy();
 	}
 	
     /* ---------------------- Retrieve Bitmap From Last Activity ----------------------- */
 	
-	private Bitmap retrieveBitmap()
+	private Bitmap[] retrieveBitmaps()
 	{
-		Intent intent = getIntent();
-		byte[] bytes = intent.getByteArrayExtra(SelectObjectActivity.OBJECT_BITMAP_EXTRA);
-		Bitmap result = BitmapFactory.decodeByteArray(
-		        bytes, 0 , bytes.length);
+		Bitmap[] result = new Bitmap[BitmapFileHandler.getBitmapCount()];
+		for(int i = 0; i < BitmapFileHandler.getBitmapCount(); i++)
+		{
+			result[i] = BitmapFileHandler.readBitmap(this, i);
+			result[i] = MatBitmapHelper.convertPowerOfTwo(result[i]);
+		}
 		return result;
 	}
 	
@@ -111,20 +125,25 @@ public class MainCardboardActivity extends CardboardActivity implements Cardboar
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 		
 		// Apply the eye transformation to the camera.
+		mEyeTransformPerspective = transform.getPerspective();
         Matrix.multiplyMM(mView, 0, transform.getEyeView(), 0, mCamera, 0);
         Matrix.setIdentityM(mModelImgDisplay, 0);
         Matrix.multiplyMM(mModelView, 0, mView, 0, mModelImgDisplay, 0);
-        Matrix.multiplyMM(mModelViewProjection, 0, transform.getPerspective(), 0, mModelView, 0);
+        Matrix.multiplyMM(mModelViewProjection, 0, mEyeTransformPerspective, 0, mModelView, 0);
         
         // Draw Skybox
         drawSkybox();
 		
-		// Draw Bitmap
-		drawImageDisplay();
-		
 		// Draw particle shooter
 		drawParticles();
 		
+		// Draw Bitmap
+		float angle = 0f;
+	    for(int i = 0; i < BitmapFileHandler.getBitmapCount(); i++)
+	    {
+	    	drawImageDisplay(imageDisplays[i], textures[i], angle);
+	    	angle += 45f;
+	    }
 	}
 
 	@Override
@@ -159,12 +178,19 @@ public class MainCardboardActivity extends CardboardActivity implements Cardboar
 		GLES20.glEnable(GLES20.GL_BLEND);
 		GLES20.glBlendFunc( GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA );
 		GLES20.glClearColor(0.1f, 0.1f, 0.1f, 0.5f);
-		
-		imageDisplay = new ImageDisplay(bitmap);
-		//table = new Table();
+		final int bitCount = BitmapFileHandler.getBitmapCount();
+		imageDisplays = new ImageDisplay[bitCount];
+		for(int i = 0; i < bitCount; i++)
+		{
+			imageDisplays[i] = new ImageDisplay(bitmaps[i]);
+		}
 		
 		textureProgram = new TextureShaderProgram(this);
-		texture = TextureHelper.loadTexture(bitmap);
+		textures = new int[bitCount];
+		for(int i = 0; i < bitCount; i++)
+		{
+			textures[i] = TextureHelper.loadTexture(bitmaps[i]);
+		}
 		
 		skyboxProgram = new SkyboxShaderProgram(this);
 		skybox = new Skybox();
@@ -208,12 +234,14 @@ public class MainCardboardActivity extends CardboardActivity implements Cardboar
 		skybox.draw();
 	}
 	
-	private void drawImageDisplay()
+	private void drawImageDisplay(ImageDisplay imgDisp, int txtr, float angle)
 	{
 		textureProgram.useProgram();
-		textureProgram.setUniforms(mModelViewProjection, texture);
-		imageDisplay.bindData(textureProgram);
-		imageDisplay.draw();
+		setImageDisplayPosition(angle);
+		textureProgram.setUniforms(mModelViewProjection, txtr);
+		imgDisp.bindData(textureProgram);
+		imgDisp.draw();
+		
 	}
 	
 	private void drawParticles()
@@ -228,6 +256,42 @@ public class MainCardboardActivity extends CardboardActivity implements Cardboar
 		particleSystem.bind(particleProgram);
 		particleSystem.draw();
 		
+	}
+	
+	/* ------------------ Position Image Displays Around Scenario --------------------- */
+	
+	private void setImageDisplayPosition(float angle)
+	{
+		Matrix.setIdentityM(mModelImgDisplay, 0);
+		Matrix.rotateM(mModelImgDisplay, 0, angle, 0f, 1f, 0f);
+		Matrix.multiplyMM(mModelView, 0, mView, 0, mModelImgDisplay, 0);
+        Matrix.multiplyMM(mModelViewProjection, 0, mEyeTransformPerspective, 0, mModelView, 0);
+	}
+	
+    /* ------------------------ Volume Button Listener Method ------------------------- */
+	
+	@Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if ((keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)){
+            imageDisplays[0].scaleDown();
+            Log.i(TAG, "Key Volume DOWN");
+        }
+        else if(keyCode == KeyEvent.KEYCODE_VOLUME_UP)
+        {
+        	imageDisplays[0].scaleUp();
+        	Log.i(TAG, "Key Volume UP");
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+	
+	/* ----------------------------- When Back Key is Pressed -------------------------- */
+	
+	@Override
+	public void onBackPressed()
+	{
+		Log.i(TAG, "onBackPressed()");
+		super.onBackPressed();
+		this.finish();
 	}
 
 }

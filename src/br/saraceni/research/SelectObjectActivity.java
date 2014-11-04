@@ -1,7 +1,5 @@
 package br.saraceni.research;
 
-import java.io.ByteArrayOutputStream;
-
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
 
@@ -11,7 +9,9 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 import br.saraceni.research.opengl.cardboard.MainCardboardActivity;
+import br.saraceni.research.utils.BitmapFileHandler;
 import br.saraceni.research.utils.MatBitmapHelper;
 import br.saraceni.research.views.DrawableImageView;
 
@@ -35,6 +35,7 @@ public class SelectObjectActivity extends Activity {
 		{
 			drawableImageView.setImageBitmap(bitmapCameraFrame);
 		}
+		this.setResult(Activity.RESULT_CANCELED);
 	}
 	
 	/* --------------------------- Intent Bitmap Retrieval --------------------------- */ 
@@ -78,6 +79,14 @@ public class SelectObjectActivity extends Activity {
 		int id = item.getItemId();
 		if (id == R.id.action_finish) 
 		{
+			this.setResult(Activity.RESULT_OK);
+			Intent intent = new Intent(SelectObjectActivity.this, MainCardboardActivity.class);
+			startActivity(intent);
+			this.finish();
+			return true;
+		}
+		else if(id == R.id.action_save)
+		{
 			selectObjectFromImg();
 			return true;
 		}
@@ -94,12 +103,8 @@ public class SelectObjectActivity extends Activity {
 		Mat img = MatBitmapHelper.bitmapToMat(bitmapCameraFrame);
 		Mat matObjct = MatBitmapHelper.grabCut(img, rect);
 		bitmapObject = MatBitmapHelper.MatToBitmap(matObjct);
-		ByteArrayOutputStream bs = new ByteArrayOutputStream();
-		bitmapObject.compress(Bitmap.CompressFormat.PNG, 50, bs);
-		//Intent intent = new Intent(SelectObjectActivity.this, OpenGLRenderingActivity.class);
-		Intent intent = new Intent(SelectObjectActivity.this, MainCardboardActivity.class);
-		intent.putExtra(OBJECT_BITMAP_EXTRA, bs.toByteArray());
-		startActivity(intent);
+		BitmapFileHandler.writeBitmap(this, bitmapObject);
+		Toast.makeText(this, "Object Savend.", Toast.LENGTH_SHORT).show();
 	}
 
 }

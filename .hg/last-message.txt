@@ -1,2 +1,2 @@
-3D Virtual Dynamic Elements added. Version presented to Dr Stephen.
+Added support to up to 8 objects in scene. Final version presented to Dr Stephen Gould.
 
