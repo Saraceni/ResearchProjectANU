@@ -139,11 +139,14 @@ public class MainCardboardActivity extends CardboardActivity implements Cardboar
 		
 		// Draw Bitmap
 		float angle = 0f;
+		GLES20.glEnable(GLES20.GL_BLEND);
+		GLES20.glBlendFunc( GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA );
 	    for(int i = 0; i < BitmapFileHandler.getBitmapCount(); i++)
 	    {
 	    	drawImageDisplay(imageDisplays[i], textures[i], angle);
 	    	angle += 45f;
 	    }
+	    GLES20.glDisable(GLES20.GL_BLEND);
 	}
 
 	@Override
@@ -175,8 +178,8 @@ public class MainCardboardActivity extends CardboardActivity implements Cardboar
 
 	@Override
 	public void onSurfaceCreated(EGLConfig arg0) {
-		GLES20.glEnable(GLES20.GL_BLEND);
-		GLES20.glBlendFunc( GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA );
+		//GLES20.glEnable(GLES20.GL_BLEND);
+		//GLES20.glBlendFunc( GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA );
 		GLES20.glClearColor(0.1f, 0.1f, 0.1f, 0.5f);
 		final int bitCount = BitmapFileHandler.getBitmapCount();
 		imageDisplays = new ImageDisplay[bitCount];
@@ -246,6 +249,9 @@ public class MainCardboardActivity extends CardboardActivity implements Cardboar
 	
 	private void drawParticles()
 	{
+		GLES20.glEnable(GLES20.GL_BLEND);
+		GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE);
+		
 		float currentTime = (System.nanoTime() - globalStartTime) / 1000000000f;
 		
 		redParticleShooter.addParticles(particleSystem, currentTime, 5);
@@ -256,6 +262,7 @@ public class MainCardboardActivity extends CardboardActivity implements Cardboar
 		particleSystem.bind(particleProgram);
 		particleSystem.draw();
 		
+		GLES20.glDisable(GLES20.GL_BLEND);
 	}
 	
 	/* ------------------ Position Image Displays Around Scenario --------------------- */

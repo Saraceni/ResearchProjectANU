@@ -1,2 +1,2 @@
-Added support to up to 8 objects in scene. Final version presented to Dr Stephen Gould.
+Particles Color Adjusted.
 
