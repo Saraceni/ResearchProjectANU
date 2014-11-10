@@ -10,17 +10,28 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 
+/*
+ * Class created to handle bitmap files saving and retrieval
+ */
+
 public class BitmapFileHandler {
 	
+	// Debugging tag for this class
 	public static final String TAG = "BitmapFileHandler";
+	
+	// File name and extension.
 	private static final String FILE_NAME = "bitmaps";
 	private static final String FILE_EXTENSION = ".dat";
+	
+	// Number of files saved 
 	private static int numFiles = 0;
 	
 	public BitmapFileHandler()
 	{
 		
 	}
+	
+	/* -------------------------- Write a Bitmap Data as a File --------------------- */
 	
 	public static synchronized boolean writeBitmap(Context context, Bitmap bitmap)
 	{
@@ -38,6 +49,8 @@ public class BitmapFileHandler {
 		numFiles++;
 		return true;
 	}
+	
+	/* -------------------------- Read Bitmap Data From File  --------------------- */
 	
 	public static synchronized Bitmap readBitmap(Context context, int num)
 	{
@@ -63,6 +76,8 @@ public class BitmapFileHandler {
 		
 	}
 	
+	/* -------------------------- Delete All Bitmap Files  --------------------- */
+	
 	public static synchronized void deleteAllFiles(Context context)
 	{
 		for(int i = 0; i < numFiles; i++)
@@ -71,6 +86,8 @@ public class BitmapFileHandler {
 		}
 		numFiles = 0;
 	}
+	
+	/* -------------------------- Get Number of Bitmap Files Saved  --------------------- */
 	
 	public static synchronized int getBitmapCount()
 	{

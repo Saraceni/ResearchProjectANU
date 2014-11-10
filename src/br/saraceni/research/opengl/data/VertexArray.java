@@ -7,11 +7,19 @@ import java.nio.FloatBuffer;
 
 import android.opengl.GLES20;
 
+/*
+ * This class was taken from the book
+ * Open GL ES 2 for Android A Quick-Start Guide
+ * by Kevin Brothaler
+ */
+
 
 public class VertexArray {
 	
+	// Buffer for data
 	private final FloatBuffer floatBuffer;
 	
+	// Constructor
 	public VertexArray(float[] vertexData)
 	{
 		floatBuffer = ByteBuffer
@@ -21,6 +29,7 @@ public class VertexArray {
 				.put(vertexData);
 	}
 	
+	// Send the buffer data to the corresponding variable in the shader program
 	public void setVertexAttribPointer(int dataOffset, int attributeLocation,
 			int componentCount, int stride)
 	{
@@ -32,6 +41,7 @@ public class VertexArray {
 		floatBuffer.position(0);
 	}
 	
+	// Update the data on buffer
 	public void updateBuffer(float[] vertexData, int start, int count)
 	{
 		floatBuffer.position(start);

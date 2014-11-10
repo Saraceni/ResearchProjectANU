@@ -2,8 +2,12 @@ package br.saraceni.research;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,13 +28,24 @@ import org.opencv.core.Size;
 
 public class ResearchMainActivity extends Activity implements CvCameraViewListener2 {
 	
+	// Tag for debugging
 	public static final String TAG = "ResearchMainActivity";
-	public static final String FRAME_URI_EXTRA = "FRAME_URI_EXTRA";
-	private static final int ACTIVITY_RESULT = 67;
 	
+	// String to identify this Frame
+	public static final String FRAME_URI_EXTRA = "FRAME_URI_EXTRA";
+	
+	// Int to identify activities results
+	private static final int ACTIVITY_RESULT = 67;
+	private static final int REQUEST_USR_IMG = 32;
+	
+	// View responsible for receiving camera frames
 	private CameraBridgeViewBase mOpenCvCameraView;
+	
+	// OpenCV Mat object will holding camera frames
 	private Mat mCameraFrame;
 	private Mat lastCameraFrame;
+	
+	// Object for holding the frame size
 	private Size frameSize;
 	
     /* --------------------- Method for Downloading OpenCvLibrary --------------------- */
@@ -79,6 +94,7 @@ public class ResearchMainActivity extends Activity implements CvCameraViewListen
 		mOpenCvCameraView.disableFpsMeter();
 		
 	}
+
 	
 	@Override
 	public void onResume()
@@ -88,6 +104,7 @@ public class ResearchMainActivity extends Activity implements CvCameraViewListen
 		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this, mLoaderCallback);
 	}
 	
+	// Disable frame capturing when this activity is paused
 	@Override
 	public void onPause()
 	{
@@ -97,6 +114,7 @@ public class ResearchMainActivity extends Activity implements CvCameraViewListen
 			mOpenCvCameraView.disableView();
 	}
 	
+	// Disable frame capturing when this activity is destroyed
 	public void onDestroy() {
 		Log.i(TAG, "onDestroy()");
         super.onDestroy();
@@ -122,6 +140,11 @@ public class ResearchMainActivity extends Activity implements CvCameraViewListen
 		if (id == R.id.action_capture) 
 		{
 			handleCapturedFrame();
+			return true;
+		}
+		else if(id == R.id.action_select)
+		{
+			promptUserSelectImg();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -150,8 +173,35 @@ public class ResearchMainActivity extends Activity implements CvCameraViewListen
 		case ACTIVITY_RESULT:
 			if(resultCode == Activity.RESULT_OK)
 			{
+				// The user has chosen all the elements to add to the 3D VR environment
+				// Now this activity is finished
 				Log.i(TAG, "resultCode = RESULT_OK");
 				this.finish();
+			}
+			break;
+		case REQUEST_USR_IMG:
+			if(resultCode == Activity.RESULT_OK)
+			{
+				// The user have selected an Image. This image must be retrieved
+				// To be passed to the next activity
+				Uri uri = data.getData();
+	            String[] filePathColumn = { MediaStore.Images.Media.DATA };
+	            Cursor cursor = getContentResolver().query(uri, filePathColumn, null, null, null);
+	            cursor.moveToFirst();
+	            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+	            String filePath = cursor.getString(columnIndex);
+	            cursor.close();
+	            // First decode with inJustDecodeBounds=true to check dimensions
+	    	    final BitmapFactory.Options options = new BitmapFactory.Options();
+	    	    options.inJustDecodeBounds = false;
+	    	    Bitmap img = BitmapFactory.decodeFile(filePath, options);
+	    	    final float scale = calculateImageScale(options.outWidth, options.outHeight);
+	    	    img = MatBitmapHelper.scaleBitmap(img, scale);
+	    	    String sUri = MatBitmapHelper.getUriFromBitmap(this, img, 
+	    				"Frame", "Camera Frame");
+	    		Intent intent = new Intent(ResearchMainActivity.this, SelectObjectActivity.class);
+	    		intent.putExtra(FRAME_URI_EXTRA, sUri);
+	    		startActivityForResult(intent, ACTIVITY_RESULT);
 			}
 			break;
 		}
@@ -162,6 +212,7 @@ public class ResearchMainActivity extends Activity implements CvCameraViewListen
 	@Override
 	public void onCameraViewStarted(int width, int height) {
 		frameSize = new Size(width, height);
+		Log.i(TAG, "Frame width = " + width + " Frame Height = " + height); 
 	}
 
 	@Override
@@ -175,4 +226,28 @@ public class ResearchMainActivity extends Activity implements CvCameraViewListen
 		mCameraFrame = inputFrame.rgba();
 		return mCameraFrame;
 	}
+	
+    /* ----------------------------- Select Image From Storage --------------------------- */
+	
+	private void promptUserSelectImg()
+	{
+		Intent intent = new Intent(Intent.ACTION_PICK,android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+		startActivityForResult(intent, REQUEST_USR_IMG);
+		
+	}
+	
+	/* ---------------------- Calculate Scale to fit Image in Frame ------------------- */
+	
+	private float calculateImageScale(int width, int height)
+	{
+		float scale = 1f;
+		if(width > frameSize.width || height > frameSize.height)
+		{
+			float widthAspectRatio = ((float) frameSize.width / (float) width);
+			float heightAspectRatio = ((float) frameSize.height / (float) height);
+			scale = widthAspectRatio < heightAspectRatio ? widthAspectRatio : heightAspectRatio;
+		}
+		return scale;
+	}
+	
 }

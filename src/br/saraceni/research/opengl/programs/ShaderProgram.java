@@ -5,6 +5,12 @@ import br.saraceni.research.utils.TextResourceReader;
 import android.content.Context;
 import android.opengl.GLES20;
 
+/*
+ * This class was taken from the book
+ * Open GL ES 2 for Android A Quick-Start Guide
+ * by Kevin Brothaler
+ */
+
 public class ShaderProgram {
 	
 	// Uniform constants

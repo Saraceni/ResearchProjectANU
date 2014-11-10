@@ -4,12 +4,20 @@ import br.saraceni.research.R;
 import android.content.Context;
 import android.opengl.GLES20;
 
+/*
+ * This class was taken from the book
+ * Open GL ES 2 for Android A Quick-Start Guide
+ * by Kevin Brothaler
+ */
+
 public class SkyboxShaderProgram extends ShaderProgram {
 	
+	// Matrix Variables Location in Shader Progam
 	private final int uMatrixLocation;
 	private final int uTextureUnitLocation;
 	private final int aPositionLocation;
 	
+	// Constructor
 	public SkyboxShaderProgram(Context context)
 	{
 		super(context, R.raw.skybox_vertex_shader, R.raw.skybox_fragment_shader);
@@ -19,6 +27,7 @@ public class SkyboxShaderProgram extends ShaderProgram {
 		aPositionLocation = GLES20.glGetAttribLocation(program, A_POSITION);
 	}
 	
+	// Set Uniform Variables in Code
 	public void setUniforms(float[] matrix, int textureId)
 	{
 		GLES20.glUniformMatrix4fv(uMatrixLocation, 1, false, matrix, 0);
@@ -27,6 +36,7 @@ public class SkyboxShaderProgram extends ShaderProgram {
 		GLES20.glUniform1i(uTextureUnitLocation, 0);
 	}
 	
+	// Gets position attribute
 	public int getPositionAttributeLocation()
 	{
 		return aPositionLocation;

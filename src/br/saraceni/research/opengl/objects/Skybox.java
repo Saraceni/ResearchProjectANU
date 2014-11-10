@@ -6,6 +6,12 @@ import br.saraceni.research.opengl.data.VertexArray;
 import br.saraceni.research.opengl.programs.SkyboxShaderProgram;
 import android.opengl.GLES20;
 
+/*
+ * This class was taken from the book
+ * Open GL ES 2 for Android A Quick-Start Guide
+ * by Kevin Brothaler
+ */
+
 public class Skybox {
 	
 	private static final int POSITION_COMPONENT_COUNT = 3;
@@ -56,6 +62,7 @@ public class Skybox {
 		indexArray.position(0);
 	}
 	
+	// bind this object data to a variable in the shader program
 	public void bindData(SkyboxShaderProgram skyboxShaderProgram)
 	{
 		vertexArray.setVertexAttribPointer(0, 
@@ -63,6 +70,7 @@ public class Skybox {
 				POSITION_COMPONENT_COUNT, 0);
 	}
 	
+	// Draw this object in the screen
 	public void draw()
 	{
 		GLES20.glDrawElements(GLES20.GL_TRIANGLES, 36, GLES20.GL_UNSIGNED_BYTE, indexArray);

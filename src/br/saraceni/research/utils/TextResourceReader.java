@@ -8,8 +8,15 @@ import java.io.InputStreamReader;
 import android.content.Context;
 import android.content.res.Resources;
 
+/*
+ * This class was taken from the book
+ * Open GL ES 2 for Android A Quick-Start Guide
+ * by Kevin Brothaler
+ */
+
 public class TextResourceReader {
 	
+	// Read a raw data file and return it's text in the form of a String
 	public static String readTextFileFromResource(Context context, int resourceId)
 	{
 		StringBuilder body = new StringBuilder();

@@ -16,8 +16,14 @@ import android.provider.MediaStore;
 import android.provider.MediaStore.Images.Media;
 import android.util.Log;
 
+/*
+ * Class created to help managing operations
+ * in Bitmaps and Mat objects
+ */
+
 public class MatBitmapHelper {
 	
+	// Debugging tag for this class
 	public static final String TAG = "MatBitmapHelper";
 	
 	
@@ -59,7 +65,7 @@ public class MatBitmapHelper {
 		return mat;
 	}
 	
-	/* ----------------------------- Bitmap Url Retrieval --------------------------- */
+	/* ----------------------------- Bitmap Uri Retrieval --------------------------- */
 	
 	public static String getUriFromBitmap(Context context, Bitmap bitmap, String title, String description)
 	{
@@ -102,6 +108,7 @@ public class MatBitmapHelper {
 		return result;
 	}
 	
+	// Compare mask with original image in order to create segmented object
 	private static Mat createCroppedImageMat(Mat img, Mat mask)
 	{
 		Mat result = new Mat(img.rows(), img.cols(), img.type());
@@ -110,6 +117,7 @@ public class MatBitmapHelper {
 			for(int c = 0; c < mask.cols(); c++)
 			{
 				double[] pixels = mask.get(r, c);
+				// Dark pixels in the mask represent segment object
 				if(pixels[0] == 255)
 				{
 					result.put(r, c, img.get(r, c));

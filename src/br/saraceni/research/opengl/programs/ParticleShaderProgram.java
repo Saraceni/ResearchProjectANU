@@ -4,6 +4,11 @@ import br.saraceni.research.R;
 import android.content.Context;
 import android.opengl.GLES20;
 
+/*
+ * This class was taken from the book
+ * Open GL ES 2 for Android A Quick-Start Guide
+ * by Kevin Brothaler
+ */
 
 public class ParticleShaderProgram extends ShaderProgram {
 	
@@ -37,6 +42,7 @@ public class ParticleShaderProgram extends ShaderProgram {
 		aParticleStartTimeLocation = GLES20.glGetAttribLocation(program, A_PARTICLE_START_TIME);
 	}
 	
+	// Set uniforn data for this program
 	public void setUniforms(float[] matrix, float elapsedTime, int textureId)
 	{
 		GLES20.glUniformMatrix4fv(uMatrixLocation, 1, false, matrix, 0);
@@ -46,6 +52,7 @@ public class ParticleShaderProgram extends ShaderProgram {
 		GLES20.glUniform1i(uTextureUnitLocation, 0);
 	}
 	
+	/* ---------- Get Methods for Position, Color, DirectionVector and StartTime --------- */
 	public int getPositionAttributeLocation()
 	{
 		return aPositionLocation;

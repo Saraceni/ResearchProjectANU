@@ -8,6 +8,11 @@ import br.saraceni.research.opengl.util.Geometry.Vector;
 import android.graphics.Color;
 import android.opengl.GLES20;
 
+/*
+ * This class was taken from the book
+ * Open GL ES 2 for Android A Quick-Start Guide
+ * by Kevin Brothaler
+ */
 
 public class ParticleSystem {
 	
@@ -32,6 +37,7 @@ public class ParticleSystem {
 	private int currentParticleCount;
 	private int nextParticle;
 	
+	// Constructor
 	public ParticleSystem(int maxParticleCount)
 	{
 		particles = new float[maxParticleCount * TOTAL_COMPONENT_COUNT];
@@ -58,6 +64,7 @@ public class ParticleSystem {
 			nextParticle = 0;
 		}
 		
+		// Update the particles data in the determined offset
 		particles[currentOffset++] = position.x;
 		particles[currentOffset++] = position.y;
 		particles[currentOffset++] = position.z;
@@ -75,30 +82,36 @@ public class ParticleSystem {
 		vertexArray.updateBuffer(particles, particleOffset, TOTAL_COMPONENT_COUNT);
 	}
 	
+	// Bind this particle data to the shader programs 
 	public void bind(ParticleShaderProgram particleProgram)
 	{
 		int dataOffset = 0;
+		// Bind position data
 		vertexArray.setVertexAttribPointer(dataOffset, 
 				particleProgram.getPositionAttributeLocation(), 
 				POSITION_COMPONENT_COUNT, STRIDE);
 		dataOffset += POSITION_COMPONENT_COUNT;
 		
+		// bind color data
 		vertexArray.setVertexAttribPointer(dataOffset, 
 				particleProgram.getColorAttributeLocation(),
 				COLOR_COMPONENT_COUNT, STRIDE);
 		dataOffset += COLOR_COMPONENT_COUNT;
 		
+		// bind vector data
 		vertexArray.setVertexAttribPointer(dataOffset, 
 				particleProgram.getDirectionVectorAttributeLocation(), 
 				VECTOR_COMPONENT_COUNT, STRIDE);
 		dataOffset += VECTOR_COMPONENT_COUNT;
 		
+		// bind start time data
 		vertexArray.setVertexAttribPointer(dataOffset, 
 				particleProgram.getParticleStartTimeAttributeLocation(), 
 				PARTICLE_START_TIME_COMPONENT_COUNT, 
 				STRIDE);
 	}
 	
+	// Method for drawing in the screen
 	public void draw()
 	{
 		GLES20.glDrawArrays(GLES20.GL_POINTS, 0, currentParticleCount);

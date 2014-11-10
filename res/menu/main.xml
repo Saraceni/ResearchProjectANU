@@ -7,5 +7,6 @@
         android:orderInCategory="100"
         android:showAsAction="always|withText"
         android:title="Capture"/>
+    <item android:id="@+id/action_select" android:orderInCategory="100" android:title="Select" android:showAsAction="always|withText"></item>
 
 </menu>

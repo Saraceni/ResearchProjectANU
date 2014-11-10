@@ -3,65 +3,45 @@ package br.saraceni.research.opengl.objects;
 import android.graphics.Bitmap;
 import android.opengl.GLES20;
 import android.util.Log;
-import android.view.KeyEvent;
 import br.saraceni.research.opengl.data.Constants;
 import br.saraceni.research.opengl.data.VertexArray;
-import br.saraceni.research.opengl.programs.ColorShaderProgram;
 import br.saraceni.research.opengl.programs.TextureShaderProgram;
 
+/*
+ * This class was based on the Table class described in the book
+ * Open GL ES 2 for Android A Quick-Start Guide
+ * by Kevin Brothaler
+ */
 
 public class ImageDisplay {
 	
+	// Tag for debugging application
 	private static final String TAG = "ImageDisplay";
 	
+	// Constans for each element of the arrray
 	private static final int POSITION_COMPONENT_COUNT = 3;
 	private static final int COLOR_COMPONENT_COUNT = 2;
 	private static final int STRIDE = (POSITION_COMPONENT_COUNT + 
 			COLOR_COMPONENT_COUNT) * Constants.BYTES_PER_FLOAT;
-	
-	
-	/*private static final float[] VERTEX_DATA = 
-		{
-			// Order of coordinates: X, Y, S, T
-			
-			// Triangle Fan
-			0f,		0f,		0.5f,	0.5f,
-		 -0.5f,	 -0.8f,       0f,   0.9f,
-		  0.5f,  -0.8f,       1f,   0.9f,
-		  0.5f,   0.8f,       1f,   0.1f, 
-		 -0.5f,   0.8f,       0f,   0.1f,
-		 -0.5f,  -0.8f,       0f,   0.9f
-		 
-		};*/
-	
-	/*private static final float[] VERTEX_DATA = 
-		{
-			// Order of coordinates: X, Y, S, T
-			
-			// Triangle Fan
-			0f,		0f,		1.0f,	  0f,    0f,
-		 -0.5f,	 -0.8f,     1.0f,     0f,    0f,
-		  0.5f,  -0.8f,     1.0f,     0f,    0f,
-		  0.5f,   0.8f,     1.0f,     0f,    0f, 
-		 -0.5f,   0.8f,     1.0f,     0f,    0f,
-		 -0.5f,  -0.8f,     1.0f,     0f,    0f
-		 
-		};*/
 		
-	
+	// Array containing vertex data for this class
 	private float[] VERTEX_DATA = new float[30];
 	
+	// bitmap main coordinates
     private float bitmapLeft;
 	private float bitmapRight;
 	private float bitmapBottom;
 	private float bitmapTop;
 	private float bitmapZ;
 	
+	// Element to be drawn
 	private final Bitmap bitmap;
 	
+	// Wrapper Class for the vertex data
 	private VertexArray vertexArray;
 	
-	private final float scale = 1.03f;
+	// Scale for 3D stereo displacement
+	private final float scale = 1.25f;
 	
 	
 	/* ------------------------------- Class Constructor ------------------------------ */
@@ -69,6 +49,9 @@ public class ImageDisplay {
 	public ImageDisplay(Bitmap bitmap)
 	{
 		this.bitmap = bitmap;
+		
+		// Calculates the aspect ratio in order to fit the highest side of the bitmap
+		// into the correct proportion of the screen
 		final float aspectRatio = (float) bitmap.getWidth() / (float) bitmap.getHeight();
 		if(aspectRatio > 1)
 		{
@@ -155,6 +138,8 @@ public class ImageDisplay {
 		
 		vertexArray = new VertexArray(VERTEX_DATA);
 	}
+	
+	/* --------------- Methods for Applying 3D Enhancement in this Object --------------- */
 	
 	public void scaleUp()
 	{

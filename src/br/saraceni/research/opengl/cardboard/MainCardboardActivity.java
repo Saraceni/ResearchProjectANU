@@ -2,9 +2,7 @@ package br.saraceni.research.opengl.cardboard;
 
 import javax.microedition.khronos.egl.EGLConfig;
 
-import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
@@ -14,14 +12,10 @@ import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
 import br.saraceni.research.R;
-import br.saraceni.research.ResearchMainActivity;
-import br.saraceni.research.SelectObjectActivity;
 import br.saraceni.research.opengl.objects.ImageDisplay;
 import br.saraceni.research.opengl.objects.ParticleShooter;
 import br.saraceni.research.opengl.objects.ParticleSystem;
 import br.saraceni.research.opengl.objects.Skybox;
-import br.saraceni.research.opengl.objects.Table;
-import br.saraceni.research.opengl.programs.ColorShaderProgram;
 import br.saraceni.research.opengl.programs.ParticleShaderProgram;
 import br.saraceni.research.opengl.programs.SkyboxShaderProgram;
 import br.saraceni.research.opengl.programs.TextureShaderProgram;
@@ -39,52 +33,64 @@ import com.google.vrtoolkit.cardboard.Viewport;
 
 public class MainCardboardActivity extends CardboardActivity implements CardboardView.StereoRenderer {
 
-	private static final float CAMERA_Z = 0.01f;
+	// Tag used to identify this class during debug
 	private static final String TAG = "MainCardboardActivity";
 	
+	// Offset for the camera view
+	private static final float CAMERA_Z = 0.01f;
+	
+	// Matrixes containing transformations for each stage of the positioning
 	private float[] mCamera; // set in onNewFrame
 	private float[] mView; // transform.getEyeView() * mCamera
 	private float[] mHeadView; // set in onNewFrame
 	private float[] mModelViewProjection; // transform.getPerspective() * mModelView in onDrawEye
 	private float[] mModelView; // mView * mModelImgDisplay
 	private float[] mModelImgDisplay; // translation of ImgDisplay
-	private float[] mEyeTransformPerspective;
+	private float[] mEyeTransformPerspective; // transform.getPerspective()
 	
+	// Variables of objects that will be drawn
 	private Bitmap[] bitmaps;
 	private ImageDisplay[] imageDisplays;
     private Skybox skybox;
+    private ParticleSystem particleSystem;
+    private ParticleShooter redParticleShooter;
+	private ParticleShooter blueParticleShooter;
 	
-	private TextureShaderProgram textureProgram;
-	private SkyboxShaderProgram skyboxProgram;
-	
+	// Location of each bitmap in the OpenGL program interface.
 	private int particleTexture;
 	private int skyboxTexture;
 	private int[] textures;
 	
+	// Variable used to 
 	private long globalStartTime;
 	
+	// Programs used by OpenGL to draw objects
+	private TextureShaderProgram textureProgram;
+	private SkyboxShaderProgram skyboxProgram;
 	private ParticleShaderProgram particleProgram;
-	private ParticleSystem particleSystem;
-	private ParticleShooter redParticleShooter;
-	private ParticleShooter blueParticleShooter;
 	
 	/* --------------------------- Activity Lifecycle Methods --------------------------- */
 	
+	/*
+	 * Method called when this activity is created
+	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
-		
+		// Request fullscreen mode to the OS
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		
 		super.onCreate(savedInstanceState);
 		
+		// Set the layout and retrieve the layout components 
 		setContentView(R.layout.cardboard_activity);
 		CardboardView cardboardView = (CardboardView) findViewById(R.id.cardboard_view);
 		cardboardView.setRenderer(this);
 		setCardboardView(cardboardView);
 		
+		// Initializes the transformation matrixes
 		mCamera = new float[16];
 		mView = new float[16];
 		mHeadView = new float[16];
@@ -92,9 +98,14 @@ public class MainCardboardActivity extends CardboardActivity implements Cardboar
 		mModelView = new float[16];
 		mModelImgDisplay = new float[16];
 		
+		// Retrieve the bitmap of the elements that will be drawn
 		bitmaps = retrieveBitmaps();
 	}
 	
+	/*
+	 * Method called when this activity will be destroyed by the OS.
+	 * It deletes all bitmap files before it finishes it's execution.
+	 */
 	@Override
 	public void onDestroy()
 	{
@@ -178,10 +189,11 @@ public class MainCardboardActivity extends CardboardActivity implements Cardboar
 
 	@Override
 	public void onSurfaceCreated(EGLConfig arg0) {
-		//GLES20.glEnable(GLES20.GL_BLEND);
-		//GLES20.glBlendFunc( GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA );
+		// Clear the layout for start rendering
 		GLES20.glClearColor(0.1f, 0.1f, 0.1f, 0.5f);
 		final int bitCount = BitmapFileHandler.getBitmapCount();
+		
+		// Initialize all the elements selected by the user.
 		imageDisplays = new ImageDisplay[bitCount];
 		for(int i = 0; i < bitCount; i++)
 		{
@@ -195,6 +207,7 @@ public class MainCardboardActivity extends CardboardActivity implements Cardboar
 			textures[i] = TextureHelper.loadTexture(bitmaps[i]);
 		}
 		
+		// Initialize skybox
 		skyboxProgram = new SkyboxShaderProgram(this);
 		skybox = new Skybox();
 		skyboxTexture = TextureHelper.loadCubeMap(this, new int[]{
@@ -202,6 +215,7 @@ public class MainCardboardActivity extends CardboardActivity implements Cardboar
 				R.drawable.top, R.drawable.front, R.drawable.back
 		});
 		
+		// Initalize particle system and it's shooters
 		particleProgram = new ParticleShaderProgram(this);
 		particleSystem = new ParticleSystem(10000);
 		globalStartTime = System.nanoTime();
@@ -228,6 +242,8 @@ public class MainCardboardActivity extends CardboardActivity implements Cardboar
 		particleTexture = TextureHelper.loadTexture(this, R.drawable.particle_texture);
 		
 	}
+	
+	/* --------------------- Drawing Methods for Each Object in Scene ----------------- */
 	
 	private void drawSkybox()
 	{

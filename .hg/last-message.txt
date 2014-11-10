@@ -1,2 +1,2 @@
-Particles Color Adjusted.
+Comments added to all classes. Readme.txt file added. Version 1.0 to be evaluated.
 

@@ -19,8 +19,11 @@ public class SelectObjectActivity extends Activity {
 	
 	public static final String OBJECT_BITMAP_EXTRA = "OBJECT_BITMAP_EXTRA";
 	
+	// Bitmaps for holding the frame and segmented element
 	private Bitmap bitmapCameraFrame;
 	private Bitmap bitmapObject;
+	
+	// View for holding and handling inputs in the frame
 	private DrawableImageView drawableImageView;
 	
 	/* ------------------------------ Life Cycle Methods ---------------------------- */
@@ -38,7 +41,7 @@ public class SelectObjectActivity extends Activity {
 		this.setResult(Activity.RESULT_CANCELED);
 	}
 	
-	/* --------------------------- Intent Bitmap Retrieval --------------------------- */ 
+	/* ---------------------------- Intent Bitmap Retrieval --------------------------- */ 
 	
 	private boolean retrieveBitmap()
 	{
@@ -79,6 +82,7 @@ public class SelectObjectActivity extends Activity {
 		int id = item.getItemId();
 		if (id == R.id.action_finish) 
 		{
+			// The user has selected all elements and now the next activity can be called
 			this.setResult(Activity.RESULT_OK);
 			Intent intent = new Intent(SelectObjectActivity.this, MainCardboardActivity.class);
 			startActivity(intent);
@@ -87,6 +91,7 @@ public class SelectObjectActivity extends Activity {
 		}
 		else if(id == R.id.action_save)
 		{
+			// Save the current element selected by the user
 			selectObjectFromImg();
 			return true;
 		}
@@ -97,6 +102,8 @@ public class SelectObjectActivity extends Activity {
 	
 	private void selectObjectFromImg()
 	{
+		// Retrieve the rectangle drawn by the user and use it as a parameter
+		// to apply the grab cut algorithm
 		int[] boundaries = drawableImageView.getRectangle();
 		Rect rect = new Rect(boundaries[0], boundaries[1], boundaries[2], boundaries[3]);
 		drawableImageView.eraseRectangle();
@@ -104,7 +111,7 @@ public class SelectObjectActivity extends Activity {
 		Mat matObjct = MatBitmapHelper.grabCut(img, rect);
 		bitmapObject = MatBitmapHelper.MatToBitmap(matObjct);
 		BitmapFileHandler.writeBitmap(this, bitmapObject);
-		Toast.makeText(this, "Object Savend.", Toast.LENGTH_SHORT).show();
+		Toast.makeText(this, "Object Saved.", Toast.LENGTH_SHORT).show();
 	}
 
 }

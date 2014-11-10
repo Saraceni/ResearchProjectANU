@@ -4,6 +4,12 @@ import br.saraceni.research.R;
 import android.content.Context;
 import android.opengl.GLES20;
 
+/*
+ * This class was taken from the book
+ * Open GL ES 2 for Android A Quick-Start Guide
+ * by Kevin Brothaler
+ */
+
 public class TextureShaderProgram extends ShaderProgram {
 	
 	// Uniform locations
@@ -43,6 +49,7 @@ public class TextureShaderProgram extends ShaderProgram {
 		GLES20.glUniform1i(uTextureUnitLocation, 0);
 	}
 	
+	/* ------------- Get Methods for Position and TextureCoordinates Location ----------- */
 	public int getPositionAttributeLocation()
 	{
 		return aPositionLocation;
